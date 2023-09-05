@@ -26,22 +26,21 @@ app.get("/", async(req, res) => {
 //1. API 로 users 화면에 보여주기
 app.get('/users', async(req, res) => {
 	try {
-    // query DB with SQL
     // Database Source 변수를 가져오고.
     // SELECT id, name, password FROM users;
-    const userData = await myDataSource.query(`SELECT id, name, email FROM USERS`)
-
-    // console 출력
-
-    console.log("USER DATA :", userData)
+    const userData = await myDataSource.query(`
+      SELECT id, name, email FROM USERssssS;
+    `)
 
     // FRONT 전달
-
     return res.status(200).json({
       "users": userData
     })
 	} catch (error) {
 		console.log(error)
+    return res.status(500).json({
+      "message": error.message 
+    })
 	}
 })
 //2. users 생성
@@ -50,15 +49,42 @@ app.post("/users", async(req, res) => {
 	try {
     // 1. user 정보를 frontend로부터 받는다. (프론트가 사용자 정보를 가지고, 요청을 보낸다) 
     const me = req.body
-
-    // 2. user 정보 console.log로 확인 한 번!
-    console.log("ME: ", me)
+    console.log(me)
 
     // 3. DATABASE 정보 저장.
+    // const name = me.name // 다나
+    // const password = me.password // 비밀번호
+    // const email = me.email // email
 
-    const name2 = me.name
-    const password2 = me.password
-    const email2 = me.email
+    const { name, password, email } = me //구조분해할당
+
+    // email, name, password가 다 입력되지 않은 경우
+    if (email === undefined || name === undefined || password === undefined) {
+      const error = new Error("KEY_ERROR")
+      error.statusCode = 400
+      throw error
+    }
+
+    // (필수) 비밀번호가 너무 짧을 때
+    if (password2.length < 8) {
+      const error = new Error("INVALID_PASSWORD")
+      error.statusCode = 400
+      throw error
+    }
+
+    // (심화, 진행) 이메일이 중복되어 이미 가입한 경우
+    if (1) {
+      const error = new Error("DUPLICATED_EMAIL_ADDRESS")
+      error.statusCode = 400
+      throw error
+    }
+
+    // (심화, 선택) 비밀번호에 특수문자 없을 때
+    if (password2 ) {
+      const error = new Error("")
+      error.statusCode = 400
+      throw error
+    }
 
     const userData = await myDataSource.query(`
       INSERT INTO users (
@@ -67,21 +93,21 @@ app.post("/users", async(req, res) => {
         email
       )
       VALUES (
-        '${name2}',
-        '${password2}', 
-        '${email2}'
+        '${name}',
+        '${password}', 
+        '${email}'
       )
     `)
-
-    // 4. DB data 저장 여부 확인
-    console.log('iserted user id', userData.insertId)
 
     // 5. send response to FRONTEND
 		return res.status(201).json({
       "message": "userCreated" 
 		})
-	} catch (err) {
-		console.log(err)
+	} catch (error) {
+		console.log(error)
+    return res.status(error.statusCode).json({
+      "message": error.message
+    })
 	}
 })
 
