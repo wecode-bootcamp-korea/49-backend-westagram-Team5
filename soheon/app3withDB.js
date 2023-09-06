@@ -46,23 +46,35 @@ app.get('/users', async(req, res) => {
 })
 //2. users 생성
 
-app.post("/users", async(req, res) => {
+app.post("/users/signup", async(req, res) => {
 	try {
     // 1. user 정보를 frontend로부터 받는다. (프론트가 사용자 정보를 가지고, 요청을 보낸다) 
     const me = req.body
 
-    const { name, password, email } = me //구조분해할당
+    const {password, email } = me //구조분해할당
+
+    console.log("=========================")
+    console.log("=========SIGN_UP=========")
+    console.log(
+      "EMAIL: ", email,
+      "PASSWORD: ", password
+    )
+    console.log("=========================")
 
     // email, name, password가 다 입력되지 않은 경우
-    if (email === undefined || name === undefined || password === undefined) {
-      const error = new Error("KEY_ERROR")
-      error.statusCode = 400
-      throw error
-    }
+    const requiredKeys = {email, password}
+
+    Object.keys(requiredKeys).map((key) => {
+      if (!requiredKeys[key]) {
+        const error = new Error(`KEY_ERROR:${key}_IS_MISSING`)
+        error.statusCode = 400
+        throw error
+      }
+    })
 
     // (필수) 비밀번호가 너무 짧을 때
-    if (password.length < 8) {
-      const error = new Error("INVALID_PASSWORD")
+    if (password.length <= 8) {
+      const error = new Error("PASSWORD_MUST_BE_LONGER_THAN_8")
       error.statusCode = 400
       throw error
     }
@@ -70,37 +82,26 @@ app.post("/users", async(req, res) => {
     // (심화, 진행) 이메일이 중복되어 이미 가입한 경우
     // 1. 유저가 입력한 Email인 'shlee@wecode.co.kr'이 이미 우리 DB에 있는지 확인한다.
 
-    const existingUser = await myDataSource.query(`
+    const [existingUser] = await myDataSource.query(`
       SELECT id, email FROM users WHERE email='${email}';
     `)
 
-    console.log('existing user: ', existingUser)
-    
-    // 2. 있으면, 즉, 중복이면 아래 if문 실행
-    // 
-    if (________) { // existing user 이용해서 판별`
+    if (existingUser) { // existing user 이용해서 판별`
       const error = new Error("DUPLICATED_EMAIL_ADDRESS")
-      error.statusCode = 400
-      throw error
-    }
-
-    // (심화, 선택) 비밀번호에 특수문자 없을 때
-    if (password) {
-      const error = new Error("")
       error.statusCode = 400
       throw error
     }
 
     const userData = await myDataSource.query(`
       INSERT INTO users (
-        name, 
         password,
-        email
+        email,
+        name
       )
       VALUES (
-        '${name}',
         '${password}', 
-        '${email}'
+        '${email}',
+        '이소헌'
       )
     `)
 
@@ -117,41 +118,60 @@ app.post("/users", async(req, res) => {
 })
 
 // 로그인
-app.post("/login", async(req, res) => {
+app.post("/users/login", async(req, res) => {
   try {
-    1
     const email = req.body.email
     const password = req.body.password
-    // { email, password } = req.body
-    2
 
-    // email, password KEY_ERROR 확인
-    3
+    console.log("=========================")
+    console.log("=========LOG_IN=========")
+    console.log(
+      "EMAIL: ", email,
+      "PASSWORD: ", password
+    )
+    console.log("=========================")
 
-    // Email 가진 사람 있는지 확인
-    // if 없으면 -> Error
-    // 있으면 -> 정상 진행
-    4
+    const requiredKeys = {email, password}
 
-    // Password 비교
-    // 유저가 입력한 password === DB에서 가져온 PASSword
-    // if 다르면 -> Error
-    // 같으면 -> 정상 진행
+    Object.keys(requiredKeys).map((key) => {
+      if (!requiredKeys[key]) {
+        const error = new Error(`KEY_ERROR:${key}_IS_MISSING`)
+        error.statusCode = 400
+        throw error
+      }
+    })
 
-    5 // generate token
+    const [existingUser] = await myDataSource.query(`
+      SELECT id, email, password FROM users WHERE email='${email}';
+    `)
+
+    if (!existingUser) { // existing user 이용해서 판별`
+      const error = new Error("USER_DOES_NOT_EXIST")
+      error.statusCode = 400
+      throw error
+    }
+
+    if (existingUser.password !== password) {
+      const error = new Error("INVALID_PASSWORD")
+      error.statusCode = 400
+      throw error
+    }
+
     // 1. use library allowing generating token
     // 2. {"id": 10} // 1hour
-    const token = jwt.sign({id:____}, 'scret_key')
+    const token = jwt.sign({userId : existingUser.id}, 'scret_key')
     // 3. signature
 
     return res.status(200).json({ 
       "message" : "LOGIN_SUCCESS",
       "accessToken" : token
     })
-    6
 
   } catch (error) {
     console.log(error)
+    return res.status(error.statusCode).json({
+      "message": error.message
+    })
   }
 })
 
