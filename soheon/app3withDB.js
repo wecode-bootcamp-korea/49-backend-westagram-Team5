@@ -49,12 +49,6 @@ app.post("/users", async(req, res) => {
 	try {
     // 1. user 정보를 frontend로부터 받는다. (프론트가 사용자 정보를 가지고, 요청을 보낸다) 
     const me = req.body
-    console.log(me)
-
-    // 3. DATABASE 정보 저장.
-    // const name = me.name // 다나
-    // const password = me.password // 비밀번호
-    // const email = me.email // email
 
     const { name, password, email } = me //구조분해할당
 
@@ -66,21 +60,31 @@ app.post("/users", async(req, res) => {
     }
 
     // (필수) 비밀번호가 너무 짧을 때
-    if (password2.length < 8) {
+    if (password.length < 8) {
       const error = new Error("INVALID_PASSWORD")
       error.statusCode = 400
       throw error
     }
 
     // (심화, 진행) 이메일이 중복되어 이미 가입한 경우
-    if (1) {
+    // 1. 유저가 입력한 Email인 'shlee@wecode.co.kr'이 이미 우리 DB에 있는지 확인한다.
+
+    const existingUser = await myDataSource.query(`
+      SELECT id, email FROM users WHERE email='${email}';
+    `)
+
+    console.log('existing user: ', existingUser)
+    
+    // 2. 있으면, 즉, 중복이면 아래 if문 실행
+    // 
+    if (________) { // existing user 이용해서 판별`
       const error = new Error("DUPLICATED_EMAIL_ADDRESS")
       error.statusCode = 400
       throw error
     }
 
     // (심화, 선택) 비밀번호에 특수문자 없을 때
-    if (password2 ) {
+    if (password) {
       const error = new Error("")
       error.statusCode = 400
       throw error
