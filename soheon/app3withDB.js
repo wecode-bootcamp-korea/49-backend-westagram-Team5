@@ -1,6 +1,7 @@
 const http = require('http')
 const express = require('express')
 const { DataSource } = require('typeorm');
+const jwt = require('jsonwebtoken')
 
 const myDataSource = new DataSource({
  type: 'mysql', 
@@ -113,6 +114,45 @@ app.post("/users", async(req, res) => {
       "message": error.message
     })
 	}
+})
+
+// 로그인
+app.post("/login", async(req, res) => {
+  try {
+    1
+    const email = req.body.email
+    const password = req.body.password
+    // { email, password } = req.body
+    2
+
+    // email, password KEY_ERROR 확인
+    3
+
+    // Email 가진 사람 있는지 확인
+    // if 없으면 -> Error
+    // 있으면 -> 정상 진행
+    4
+
+    // Password 비교
+    // 유저가 입력한 password === DB에서 가져온 PASSword
+    // if 다르면 -> Error
+    // 같으면 -> 정상 진행
+
+    5 // generate token
+    // 1. use library allowing generating token
+    // 2. {"id": 10} // 1hour
+    const token = jwt.sign({id:____}, 'scret_key')
+    // 3. signature
+
+    return res.status(200).json({ 
+      "message" : "LOGIN_SUCCESS",
+      "accessToken" : token
+    })
+    6
+
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 
